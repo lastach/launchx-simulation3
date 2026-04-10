@@ -259,7 +259,7 @@ QUOTE_POOLS = {
             ("positive", ["mid", "low"], "The price feels fair for how much value I get. I use it more than Netflix."),
         ],
         "channel": [
-           ("positive", ["campus"], "My RA told everyone on our floor about it. Now our whole dorm uses it for exam prep."),
+            ("positive", ["campus"], "My RA told everyone on our floor about it. Now our whole dorm uses it for exam prep."),
             ("negative", ["social"], "I saw it on TikTok once but forgot the name. Did not download it until a friend reminded me weeks later."),
             ("positive", ["university"], "My professor mentioned it in class. I trust it more knowing the school is behind it."),
             ("negative", ["appstore"], "I found it by accident in the App Store. Never heard of it from anyone at school."),
@@ -331,7 +331,7 @@ QUOTE_POOLS = {
             ("positive", ["families"], "My kids want to try everything: kayaking, camping, skiing. With GearShare I can say yes without spending a fortune."),
             ("negative", ["tourists"], "I rented gear once on vacation and it was great, but I am not going to keep a membership for a once a year trip."),
             ("positive", ["weekend"], "I always wanted to try paddleboarding but did not want to buy a board first. GearShare let me test it risk free."),
-       ],
+        ],
     },
 }
 
@@ -876,7 +876,7 @@ def screen_config():
             for lever in ["revenue", "pricing", "channel", "segment"]:
                 lever_label = v["levers"][lever]["label"]
                 choice_label = v["levers"][lever]["options"][prev_config[lever]]["label"]
-       model_pills += (
+                model_pills += (
                     f"<span style='display:inline-block;background:#e0e7ff;border:1px solid #c7d2fe;"
                     f"border-radius:16px;padding:4px 12px;margin:3px;font-size:0.82rem;color:#3730a3;'>"
                     f"{lever_label}: <strong>{choice_label}</strong></span>"
