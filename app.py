@@ -259,7 +259,7 @@ QUOTE_POOLS = {
             ("positive", ["mid", "low"], "The price feels fair for how much value I get. I use it more than Netflix."),
         ],
         "channel": [
-            ("positive", ["campus"], "My RA told everyone on our floor about it. Now our whole dorm uses it for exam prep."),
+           ("positive", ["campus"], "My RA told everyone on our floor about it. Now our whole dorm uses it for exam prep."),
             ("negative", ["social"], "I saw it on TikTok once but forgot the name. Did not download it until a friend reminded me weeks later."),
             ("positive", ["university"], "My professor mentioned it in class. I trust it more knowing the school is behind it."),
             ("negative", ["appstore"], "I found it by accident in the App Store. Never heard of it from anyone at school."),
@@ -331,7 +331,7 @@ QUOTE_POOLS = {
             ("positive", ["families"], "My kids want to try everything: kayaking, camping, skiing. With GearShare I can say yes without spending a fortune."),
             ("negative", ["tourists"], "I rented gear once on vacation and it was great, but I am not going to keep a membership for a once a year trip."),
             ("positive", ["weekend"], "I always wanted to try paddleboarding but did not want to buy a board first. GearShare let me test it risk free."),
-        ],
+       ],
     },
 }
 
@@ -347,6 +347,8 @@ def init_state():
         "configs": {1: None, 2: None, 3: None},
         "results_cache": {1: None, 2: None, 3: None},
         "fit_history": [],
+        "email": None,
+        "email_skipped": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -553,17 +555,17 @@ def compute_final_scores(venture_key):
 
 def get_grade(score):
     if score >= 90:
-        return "A", "Exceptional"
+        return "A", "Exceptional Founder Instincts"
     elif score >= 80:
-        return "B", "Strong"
+        return "A-", "Strong Market Reader"
     elif score >= 70:
-        return "C", "Solid"
+        return "B+", "Solid Iteration Skills"
     elif score >= 60:
-        return "D", "Developing"
+        return "B", "Good Foundation"
     elif score >= 50:
-        return "F", "Needs Work"
+        return "B-", "Building Your Instincts"
     else:
-        return "F", "Keep Practicing"
+        return "C+", "Room to Grow"
 
 
 def get_badges(scores, configs, venture_key):
@@ -705,7 +707,8 @@ def render_fit_gauge(fit_score, label="Business Model Fit"):
 def render_footer():
     st.markdown(
         "<div style='text-align:center;color:#888;font-size:13px;margin-top:2rem;'>"
-        "Brought to you by LaunchX</div>",
+        "Brought to you by <a href='https://launchx.com' target='_blank' style='color:#6366f1;text-decoration:none;'>LaunchX</a>"
+        "</div>",
         unsafe_allow_html=True,
     )
 
@@ -719,9 +722,9 @@ def screen_intro():
         st.markdown("""
         <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
                     padding:3rem 2.5rem;border-radius:16px;color:#fff;text-align:center;margin-bottom:2rem;">
-            <div style="font-size:3rem;margin-bottom:0.5rem;">🧩</div>
+            <div style="font-size:3rem;margin-bottom:0.5rem;">🧠</div>
             <h1 style="margin:0;font-size:2.2rem;">Business Model Fit</h1>
-            <p style="opacity:0.9;font-size:1.1rem;margin-top:0.75rem;">Simulation #3</p>
+            <p style="opacity:0.9;font-size:1.1rem;margin-top:0.75rem;">A LaunchX Simulation</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -749,6 +752,9 @@ def screen_intro():
             <p style="color:#4c1d95;margin:0;font-size:0.95rem;">
                 <strong>You will be scored on:</strong> Your final model fit, how smartly you iterated,
                 and whether you stayed focused or changed too many things at once.
+            </p>
+            <p style="color:#6d28d9;margin:0.75rem 0 0 0;font-size:0.88rem;">
+                23 Takes about 8 to 10 minutes to complete.
             </p>
         </div>
         """, unsafe_allow_html=True)
@@ -830,13 +836,29 @@ def screen_config():
             </div>
             """, unsafe_allow_html=True)
 
-            # Show previous round's customer quotes as reference
+            # Show previous round's customer quotes as reference (expanded so students read them)
             prev_results = st.session_state.results_cache.get(rnd - 1)
             if prev_results and prev_results.get("quotes"):
-                with st.expander(f"💬 Customer Feedback from Round {rnd - 1}", expanded=False):
-                    for q in prev_results["quotes"]:
-                        icon = "🟢" if q["signal"] == "strong" else "🟡" if q["signal"] == "weak" else "🔴"
-                        st.markdown(f'{icon} *"{q["text"]}"*')
+                st.markdown(f"""
+                <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:0.75rem 1rem;margin-bottom:0.5rem;">
+                    <span style="font-weight:600;color:#92400e;">💬 Customer Feedback from Round {rnd - 1}</span>
+                    <span style="color:#a16207;font-size:0.85rem;"> (Use this to guide your changes!)</span>
+                </div>
+                """, unsafe_allow_html=True)
+                for q in prev_results["quotes"]:
+                    if q["signal"] == "strong":
+                        border, bg, icon = "#16a34a", "#f0fdf4", "🟢"
+                    elif q["signal"] == "weak":
+                        border, bg, icon = "#d97706", "#fffbeb", "🟡"
+                    else:
+                        border, bg, icon = "#dc2626", "#fef2f2", "🔴"
+                    st.markdown(f"""
+                    <div style="border-left:4px solid {border};background:{bg};padding:0.6rem 1rem;
+                                border-radius:0 8px 8px 0;margin-bottom:0.5rem;">
+                        <span style="font-size:0.85rem;">{icon}</span>
+                        <span style="color:#334155;font-style:italic;font-size:0.93rem;"> \"{q['text']}\"</span>
+                    </div>
+                    """, unsafe_allow_html=True)
 
         # Get previous config as defaults
         prev_config = st.session_state.configs.get(rnd - 1, None) if rnd > 1 else None
@@ -847,6 +869,29 @@ def screen_config():
             <div style="color:#64748b;font-size:0.9rem;">{v['one_liner']}</div>
         </div>
         """, unsafe_allow_html=True)
+
+        # Show current model summary for rounds 2+ so students can see what to change
+        if rnd > 1 and prev_config:
+            model_pills = ""
+            for lever in ["revenue", "pricing", "channel", "segment"]:
+                lever_label = v["levers"][lever]["label"]
+                choice_label = v["levers"][lever]["options"][prev_config[lever]]["label"]
+       model_pills += (
+                    f"<span style='display:inline-block;background:#e0e7ff;border:1px solid #c7d2fe;"
+                    f"border-radius:16px;padding:4px 12px;margin:3px;font-size:0.82rem;color:#3730a3;'>"
+                    f"{lever_label}: <strong>{choice_label}</strong></span>"
+                )
+            st.markdown(f"""
+            <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem;margin-bottom:1.5rem;">
+                <div style="font-size:0.85rem;color:#0369a1;font-weight:600;margin-bottom:6px;">
+                    📋 Your Current Model (from Round {rnd - 1})
+                </div>
+                <div>{model_pills}</div>
+                <div style="font-size:0.8rem;color:#0c4a6e;margin-top:8px;">
+                    Tip: Focus on changing 1 or 2 levers based on customer feedback. Changing everything at once makes it hard to learn what works.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
         config = {}
         left, right = st.columns(2)
@@ -975,7 +1020,7 @@ def screen_results():
             <div style="border-left:4px solid {border};background:{bg};padding:0.75rem 1rem;
                         border-radius:0 8px 8px 0;margin-bottom:0.75rem;">
                 <span style="font-size:0.85rem;">{icon}</span>
-                <span style="color:#334155;font-style:italic;font-size:0.95rem;"> "{q['text']}"</span>
+                <span style="color:#334155;font-style:italic;font-size:0.95rem;"> \"{q['text']}\"</span>
             </div>
             """, unsafe_allow_html=True)
 
@@ -999,7 +1044,7 @@ def screen_results():
 
         st.markdown(f"""
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
-            <div style="font-weight:600;color:#1e1b4b;margin-bottom:0.75rem;">🧩 Your Current Model</div>
+            <div style="font-weight:600;color:#1e1b4b;margin-bottom:0.75rem;">🧠 Your Current Model</div>
             {model_rows}
         </div>
         """, unsafe_allow_html=True)
@@ -1012,6 +1057,64 @@ def screen_results():
                 st.rerun()
         else:
             if st.button("See Your Final Score  →", use_container_width=True, type="primary"):
+                go("email")
+                st.rerun()
+
+        render_footer()
+
+
+# =============================================================================
+# SCREEN: EMAIL CAPTURE
+# =============================================================================
+def screen_email():
+    vk = st.session_state.venture_key
+    v = VENTURES[vk]
+    # Compute a teaser score
+    scores = compute_final_scores(vk)
+    grade, grade_label = get_grade(scores["total"])
+    score_color = "#16a34a" if scores["total"] >= 70 else "#d97706" if scores["total"] >= 50 else "#dc2626"
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);
+                    padding:2.5rem;border-radius:16px;color:#fff;text-align:center;margin-bottom:2rem;">
+            <div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem;">SIMULATION COMPLETE</div>
+            <div style="font-size:4rem;font-weight:800;color:{score_color};line-height:1;">{scores['total']}</div>
+            <div style="font-size:1rem;margin-top:0.5rem;opacity:0.9;">
+                Grade: {grade} ({grade_label})
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("""
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:2rem;text-align:center;margin-bottom:1.5rem;">
+            <h3 style="color:#1e1b4b;margin-top:0;">Unlock Your Full Results</h3>
+            <p style="color:#475569;line-height:1.7;">
+                See your detailed score breakdown, discover the optimal business model,
+                get personalized coaching insights, and earn achievement badges.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        email = st.text_input(
+            "Enter your email to see your full results",
+            placeholder="you@example.com",
+            key="email_input",
+        )
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            if st.button("See My Results  →", use_container_width=True, type="primary"):
+                if email and "@" in email and "." in email:
+                    st.session_state.email = email
+                    go("debrief")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a valid email address.")
+        with col_b:
+            if st.button("Skip for now", use_container_width=True):
+                st.session_state.email_skipped = True
                 go("debrief")
                 st.rerun()
 
@@ -1112,7 +1215,7 @@ def screen_debrief():
 
         st.markdown(f"""
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
-            <div style="font-weight:600;color:#1e1b4b;margin-bottom:0.75rem;">🎯 Score Breakdown</div>
+            <div style="font-weight:600;color:#1e1b4b;margin-bottom:0.75rem;">🏁 Score Breakdown</div>
             {breakdown_rows}
         </div>
         """, unsafe_allow_html=True)
@@ -1173,27 +1276,22 @@ def screen_debrief():
         </div>
         """, unsafe_allow_html=True)
 
-        # Peer comparison
+        # Founder insight (replaces fake peer comparison)
+        if scores["total_changes"] == 0:
+            insight = "You kept your model unchanged across all rounds. Real founders balance conviction with curiosity. Try adjusting one lever next time to see how the market reacts differently."
+        elif scores["total_changes"] <= 4 and scores["good_changes"] > scores["bad_changes"]:
+            insight = "You showed real founder discipline: making focused changes and reading market signals carefully. This is exactly how the best startups iterate toward product market fit."
+        elif scores["total_changes"] >= 6:
+            insight = "You changed a lot between rounds. In the real world, this is called 'thrashing.' The best founders test one or two changes at a time so they can isolate what is working."
+        elif scores["bad_changes"] > scores["good_changes"]:
+            insight = "Some of your changes moved away from what the market wanted. The customer quotes each round contain directional hints. Try rereading them more carefully next time."
+        else:
+            insight = "You iterated thoughtfully across rounds. With more practice reading customer signals, you will converge on the right model even faster."
+
         st.markdown(f"""
         <div style="background:#f1f5f9;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
-            <div style="font-weight:600;color:#334155;margin-bottom:0.75rem;">👥 How You Compare</div>
-            <div style="display:flex;justify-content:space-around;text-align:center;">
-                <div>
-                    <div style="font-size:1.8rem;font-weight:700;color:#94a3b8;">52</div>
-                    <div style="font-size:0.8rem;color:#94a3b8;">Average</div>
-                </div>
-                <div>
-                    <div style="font-size:1.8rem;font-weight:700;color:{score_color};">{scores['total']}</div>
-                    <div style="font-size:0.8rem;color:{score_color};font-weight:600;">You</div>
-                </div>
-                <div>
-                    <div style="font-size:1.8rem;font-weight:700;color:#16a34a;">84</div>
-                    <div style="font-size:0.8rem;color:#16a34a;">Top Performers</div>
-                </div>
-            </div>
-            <div style="color:#64748b;font-size:0.85rem;margin-top:1rem;text-align:center;">
-                Most students change too many things at once and lose track of what is working. The best founders test one change at a time.
-            </div>
+            <div style="font-weight:600;color:#334155;margin-bottom:0.75rem;">🧠 Founder Insight</div>
+            <div style="color:#475569;line-height:1.7;font-size:0.95rem;">{insight}</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1215,10 +1313,29 @@ def screen_debrief():
         </div>
         """, unsafe_allow_html=True)
 
-        if st.button("🔄  Play Again", use_container_width=True):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+        col_play1, col_play2 = st.columns(2)
+        with col_play1:
+            if st.button("🔄  Try a Different Venture", use_container_width=True):
+                email_backup = st.session_state.get("email")
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                init_state()
+                if email_backup:
+                    st.session_state.email = email_backup
+                go("choose")
+                st.rerun()
+        with col_play2:
+            if st.button("🔁  Replay This Venture", use_container_width=True):
+                vk_backup = st.session_state.venture_key
+                email_backup = st.session_state.get("email")
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                init_state()
+                st.session_state.venture_key = vk_backup
+                if email_backup:
+                    st.session_state.email = email_backup
+                go("config")
+                st.rerun()
 
         render_footer()
 
@@ -1236,6 +1353,8 @@ elif stage == "config":
     screen_config()
 elif stage == "results":
     screen_results()
+elif stage == "email":
+    screen_email()
 elif stage == "debrief":
     screen_debrief()
 else:
