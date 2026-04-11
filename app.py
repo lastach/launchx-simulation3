@@ -5,7 +5,7 @@ import random
 # Page config
 # =============================================================================
 st.set_page_config(
-    page_title="LaunchX: Business Model Fit",
+    page_title="Business Model Fit",
     page_icon="🧩",
     layout="wide",
 )
@@ -707,7 +707,7 @@ def render_fit_gauge(fit_score, label="Business Model Fit"):
 def render_footer():
     st.markdown(
         "<div style='text-align:center;color:#888;font-size:13px;margin-top:2rem;'>"
-        "Brought to you by <a href='https://launchx.com' target='_blank' style='color:#6366f1;text-decoration:none;'>LaunchX</a>"
+        "An Interactive Simulation"
         "</div>",
         unsafe_allow_html=True,
     )
@@ -724,7 +724,7 @@ def screen_intro():
                     padding:3rem 2.5rem;border-radius:16px;color:#fff;text-align:center;margin-bottom:2rem;">
             <div style="font-size:3rem;margin-bottom:0.5rem;">🧠</div>
             <h1 style="margin:0;font-size:2.2rem;">Business Model Fit</h1>
-            <p style="opacity:0.9;font-size:1.1rem;margin-top:0.75rem;">A LaunchX Simulation</p>
+            <p style="opacity:0.9;font-size:1.1rem;margin-top:0.75rem;">An Interactive Simulation</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1294,25 +1294,6 @@ def screen_debrief():
             <div style="color:#475569;line-height:1.7;font-size:0.95rem;">{insight}</div>
         </div>
         """, unsafe_allow_html=True)
-
-        # CTA
-        st.markdown("""
-        <div style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);
-                    padding:2rem;border-radius:16px;color:#fff;text-align:center;margin-bottom:2rem;">
-            <h3 style="margin:0 0 0.75rem 0;color:#fff;">You just practiced the hardest part of building a startup.</h3>
-            <p style="opacity:0.9;line-height:1.7;margin-bottom:1rem;">
-                Finding business model fit is what separates ventures that scale from those that stall.
-                The ability to read market signals, iterate with discipline, and converge on the right model
-                is exactly what LaunchX programs teach.
-            </p>
-            <a href="https://launchx.com/programs" target="_blank"
-               style="background:#fff;color:#6366f1;padding:10px 24px;border-radius:8px;
-                      text-decoration:none;font-weight:600;display:inline-block;">
-                Explore LaunchX Programs
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-
         col_play1, col_play2 = st.columns(2)
         with col_play1:
             if st.button("🔄  Try a Different Venture", use_container_width=True):
