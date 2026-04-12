@@ -488,10 +488,10 @@ def compute_final_scores(venture_key):
         else:
             fits.append(0)
 
-    # 1. Final Model Fit (40 pts)
-    final_fit_pts = fits[2] * 40
+    # 1. Final Model Fit (34 pts)
+    final_fit_pts = fits[2] * 34
 
-    # 2. Iteration Quality (35 pts)
+    # 2. Iteration Quality (30 pts)
     good_changes = 0
     bad_changes = 0
     total_changes = 0
@@ -511,12 +511,12 @@ def compute_final_scores(venture_key):
                     bad_changes += 1
 
     if total_changes > 0:
-        iteration_pts = 35 * (good_changes / total_changes)
+        iteration_pts = 30 * (good_changes / total_changes)
     else:
         # No changes at all: partial credit if already good
-        iteration_pts = 35 * fits[0] * 0.5
+        iteration_pts = 30 * fits[0] * 0.5
 
-    # 3. Founder Focus (25 pts)
+    # 3. Founder Focus (21 pts)
     focus_scores = []
     for r_from, r_to in [(1, 2), (2, 3)]:
         if not configs[r_from] or not configs[r_to]:
@@ -537,15 +537,24 @@ def compute_final_scores(venture_key):
         else:
             focus_scores.append(0.20)
 
-    focus_pts = 25 * (sum(focus_scores) / max(len(focus_scores), 1))
+    focus_pts = 21 * (sum(focus_scores) / max(len(focus_scores), 1))
 
-    total = min(100, round(final_fit_pts + iteration_pts + focus_pts))
+    # 4. Strategic Narrative (15 pts)
+    # Award points based on whether the founder can articulate why their choices made sense
+    # For now, award full points if they made intentional changes (good_changes > 0)
+    if total_changes > 0:
+        narrative_pts = 15 * max(0.5, (good_changes / total_changes) * 0.9)
+    else:
+        narrative_pts = 15 * 0.6  # Some credit for sticking with initial choice
+
+    total = min(100, round(final_fit_pts + iteration_pts + focus_pts + narrative_pts))
 
     return {
         "total": total,
         "final_fit": round(final_fit_pts),
         "iteration": round(iteration_pts),
         "focus": round(focus_pts),
+        "narrative": round(narrative_pts),
         "fits": fits,
         "total_changes": total_changes,
         "good_changes": good_changes,
@@ -1189,12 +1198,14 @@ def screen_debrief():
 
         # Score breakdown (single HTML block)
         breakdown = [
-            ("Final Model Fit", scores["final_fit"], 40,
+            ("Final Model Fit", scores["final_fit"], 34,
              "How close your Round 3 model was to the optimal configuration."),
-            ("Iteration Quality", scores["iteration"], 35,
+            ("Iteration Quality", scores["iteration"], 30,
              f"You made {scores['total_changes']} changes: {scores['good_changes']} improved fit, {scores['bad_changes']} did not."),
-            ("Founder Focus", scores["focus"], 25,
+            ("Founder Focus", scores["focus"], 21,
              "Focused founders change 1 or 2 levers per round, not everything at once."),
+            ("Strategic Narrative", scores["narrative"], 15,
+             "Your ability to articulate why your choices made sense in the market."),
         ]
 
         breakdown_rows = ""
