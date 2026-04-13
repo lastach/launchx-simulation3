@@ -23,218 +23,79 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 # VENTURE DEFINITIONS
 # =============================================================================
 VENTURES = {
-    "studyhive": {
-        "title": "StudyHive",
-        "emoji": "📚",
-        "one_liner": "AI powered study group matching for college students",
+    "thermaloop": {
+        "title": "ThermaLoop",
+        "emoji": "🌬️",
+        "one_liner": "Smart ventilation retrofit kits for older homes",
         "hook": (
-            "College students waste hours trying to find good study partners. "
-            "StudyHive uses AI to match students by course, learning style, and schedule "
-            "into small groups that actually stick. Your challenge: figure out the business "
-            "model that turns this useful tool into a real business."
+            "Homes built before 2005 leak heat, trap stale air, and waste 20 to 40 percent of their energy. "
+            "ThermaLoop is a smart ventilation retrofit kit that installs in a single afternoon and pays "
+            "for itself in a couple of winters. The product works. Your challenge: figure out the "
+            "business model that turns a great product into a real business."
         ),
         "levers": {
             "revenue": {
                 "label": "Revenue Model",
-                "description": "How does StudyHive make money?",
+                "description": "How does ThermaLoop make money?",
                 "options": {
-                    "freemium": {"label": "Freemium", "desc": "Free basic matching. Premium features (AI tutor, priority matching) for a monthly fee."},
-                    "subscription": {"label": "Subscription", "desc": "Monthly subscription required for all features. No free tier."},
-                    "per_session": {"label": "Pay Per Session", "desc": "Students pay a small fee each time they join a matched study group."},
-                    "ad_supported": {"label": "Ad Supported", "desc": "Free for all students. Revenue from educational advertisers and sponsors."},
+                    "hardware_only": {"label": "Hardware Only", "desc": "One time kit sale. Customer owns it, installs it, done. Classic product model."},
+                    "hardware_plus_service": {"label": "Hardware + Monitoring", "desc": "Kit sale plus a monthly monitoring subscription (air quality, energy reports, alerts)."},
+                    "saas_only": {"label": "Install Free, Monthly Fee", "desc": "Free or heavily subsidized install. All revenue from recurring monthly service."},
+                    "install_partner": {"label": "Installer Network", "desc": "Certified HVAC contractors install and keep 60 percent. ThermaLoop takes a cut on each job."},
                 },
             },
             "pricing": {
                 "label": "Price Point",
-                "description": "What does the paid tier cost?",
+                "description": "What does a customer pay?",
                 "options": {
-                    "free": {"label": "$0 (Ad Revenue Only)", "desc": "Completely free to students. Monetize through advertising and data partnerships."},
-                    "low": {"label": "$5 per month", "desc": "Low barrier. Easy impulse purchase for students on a budget."},
-                    "mid": {"label": "$12 per month", "desc": "Mid range. Positioned as valuable but accessible, less than a textbook."},
-                    "high": {"label": "$25 per month", "desc": "Premium positioning. Signals high quality, but may deter budget conscious students."},
+                    "low": {"label": "$399 kit + $9/mo", "desc": "Aggressive price. Drives adoption but thin margins."},
+                    "mid": {"label": "$599 kit + $15/mo", "desc": "Payback in 2 to 3 winters. Sustainable margins."},
+                    "high": {"label": "$899 kit + $25/mo", "desc": "Premium positioning. May feel expensive to budget buyers."},
+                    "subscription_only": {"label": "$49/mo all in", "desc": "No upfront cost. Long payback period for ThermaLoop."},
                 },
             },
             "channel": {
                 "label": "Go to Market Channel",
-                "description": "How do students discover StudyHive?",
+                "description": "How do customers discover ThermaLoop?",
                 "options": {
-                    "social": {"label": "Social Media / TikTok", "desc": "Viral content strategy. Study tips, memes, and student influencer partnerships."},
-                    "campus": {"label": "Campus Ambassadors", "desc": "Student reps at each school. Grassroots, dorm by dorm growth."},
-                    "university": {"label": "University Partnerships", "desc": "Official school endorsement. Integrated into student portals and orientation."},
-                    "appstore": {"label": "App Store / SEO", "desc": "Organic discovery through search and app store optimization."},
+                    "direct_online": {"label": "Direct to Consumer Online", "desc": "Website, Amazon, paid ads. Homeowners find you and self install."},
+                    "contractors": {"label": "HVAC Contractor Network", "desc": "Train and certify local HVAC pros. They recommend ThermaLoop on service calls."},
+                    "utility": {"label": "Utility Rebate Partnerships", "desc": "Partner with energy utilities. Rebates built into the sale."},
+                    "big_box": {"label": "Home Depot / Lowes", "desc": "Retail shelf space, in store demos, DIY weekend warriors."},
                 },
             },
             "segment": {
                 "label": "Target Customer",
-                "description": "Which students does StudyHive focus on first?",
+                "description": "Who is ThermaLoop for first?",
                 "options": {
-                    "all_students": {"label": "All College Students", "desc": "Cast a wide net. Anyone in college could use this."},
-                    "stem": {"label": "STEM Students", "desc": "Engineering, CS, math, science. High collaboration needs, tough material."},
-                    "premed": {"label": "Pre Med Students", "desc": "Extremely motivated, study constantly, willing to invest in tools."},
-                    "graduate": {"label": "Graduate Students", "desc": "Smaller market but higher willingness to pay. Already serious about academics."},
+                    "diy_homeowners": {"label": "DIY Homeowners", "desc": "Tinkerers who install their own thermostats and read energy blogs."},
+                    "older_homes": {"label": "Owners of 30+ Year Old Homes", "desc": "Pain is real. Drafty rooms, high bills, no renovation budget for a full HVAC overhaul."},
+                    "landlords": {"label": "Small Landlords", "desc": "Own 2 to 20 units. Want tenant comfort without full renovations."},
+                    "commercial": {"label": "Small Commercial Buildings", "desc": "Offices, corner stores, small warehouses. Complex sales cycle but higher ticket."},
                 },
             },
         },
         "fit_matrix": {
-            "revenue": {"freemium": 1.0, "subscription": 0.50, "per_session": 0.30, "ad_supported": 0.15},
-            "pricing": {"mid": 1.0, "low": 0.55, "high": 0.25, "free": 0.20},
-            "channel": {"campus": 1.0, "social": 0.50, "university": 0.60, "appstore": 0.30},
-            "segment": {"stem": 1.0, "all_students": 0.35, "premed": 0.65, "graduate": 0.45},
+            "revenue": {"hardware_plus_service": 1.0, "install_partner": 0.60, "hardware_only": 0.45, "saas_only": 0.25},
+            "pricing": {"mid": 1.0, "low": 0.55, "high": 0.40, "subscription_only": 0.30},
+            "channel": {"contractors": 1.0, "utility": 0.70, "big_box": 0.50, "direct_online": 0.35},
+            "segment": {"older_homes": 1.0, "landlords": 0.65, "diy_homeowners": 0.50, "commercial": 0.30},
         },
-        "optimal": {"revenue": "freemium", "pricing": "mid", "channel": "campus", "segment": "stem"},
+        "optimal": {"revenue": "hardware_plus_service", "pricing": "mid", "channel": "contractors", "segment": "older_homes"},
         "optimal_explanations": {
-            "revenue": "Freemium works best because students need to experience the AI matching before they trust it enough to pay. A free tier drives adoption, and premium features (better matches, AI tutor) give a clear upgrade path.",
-            "pricing": "$12/month hits the sweet spot. It is less than one textbook, which makes it feel like a deal. $5 undervalues the product and $25 prices out most students.",
-            "channel": "Campus ambassadors create peer trust and dorm by dorm virality. Students trust recommendations from classmates far more than ads or institutional endorsements.",
-            "segment": "STEM students have the highest need for collaborative study (problem sets, lab prep, coding projects) and naturally form study groups. They are the perfect beachhead market.",
+            "revenue": "Hardware plus monitoring is the strongest model. The kit covers COGS and install labor. The monthly service creates recurring revenue, gives you a reason to collect data, and improves retention because customers see ongoing value in their energy reports.",
+            "pricing": "$599 plus $15 per month is the sweet spot. The kit pays back in two or three winters for most older homes. Lower prices erode margin and don't change demand much. Higher prices push buyers to wait for a full HVAC replacement.",
+            "channel": "HVAC contractors are the best channel for retrofits. They're already in older homes, already trusted, and already selling. A certified installer network gives you local credibility and turns sales conversations into same day installs.",
+            "segment": "Owners of 30+ year old homes feel the pain daily: cold rooms, noisy furnaces, energy bills climbing every year. They're not DIY hobbyists, they're motivated buyers. Start here and expand to landlords and commercial later.",
         },
-        "base_metrics": {"signups": 80, "active_rate": 0.55, "revenue_per_active": 8, "retention": 0.50},
+        "base_metrics": {"signups": 60, "active_rate": 0.45, "revenue_per_active": 20, "retention": 0.50},
         "market_events": {
-            2: "A major university just announced expanded free tutoring centers on campus. Students are buzzing about alternatives to paid study tools.",
-            3: "An edtech investor reached out after seeing your traction. They want to understand your unit economics and retention numbers before a meeting.",
-        },
-    },
-    "localbite": {
-        "title": "LocalBite",
-        "emoji": "🍳",
-        "one_liner": "Marketplace connecting talented home cooks with hungry neighbors",
-        "hook": (
-            "In every neighborhood, there are amazing home cooks whose food never reaches beyond their own kitchen. "
-            "LocalBite connects them with neighbors who want fresh, homemade meals without the restaurant markup. "
-            "Your challenge: find the business model that makes this marketplace work for both sides."
-        ),
-        "levers": {
-            "revenue": {
-                "label": "Revenue Model",
-                "description": "How does LocalBite make money?",
-                "options": {
-                    "commission": {"label": "Commission Per Order", "desc": "Take a percentage of each meal order. Classic marketplace model."},
-                    "cook_sub": {"label": "Cook Subscription", "desc": "Cooks pay a monthly fee to list their meals. Eaters order for free."},
-                    "eater_sub": {"label": "Eater Membership", "desc": "Eaters pay monthly for access. Cooks list for free."},
-                    "delivery_fee": {"label": "Delivery Fee", "desc": "Charge a flat delivery fee on every order. Food is priced by cooks."},
-                },
-            },
-            "pricing": {
-                "label": "Commission / Fee Level",
-                "description": "How much does LocalBite take?",
-                "options": {
-                    "low": {"label": "10% Commission / $2 Fee", "desc": "Cook friendly. Attracts supply but thin margins for the platform."},
-                    "mid": {"label": "15% Commission / $4 Fee", "desc": "Balanced take rate. Sustainable for both cooks and the platform."},
-                    "high": {"label": "20% Commission / $6 Fee", "desc": "Higher platform margin. Risk of alienating cooks."},
-                    "premium": {"label": "25% Commission / $8 Fee", "desc": "Maximum extraction. Could drive cooks to competing platforms."},
-                },
-            },
-            "channel": {
-                "label": "Go to Market Channel",
-                "description": "How do people discover LocalBite?",
-                "options": {
-                    "social": {"label": "Instagram / Food Content", "desc": "Beautiful food photography, recipes, cook profiles. Visual marketing."},
-                    "nextdoor": {"label": "Neighborhood Apps", "desc": "Nextdoor, local Facebook groups, community boards. Hyperlocal strategy."},
-                    "farmers": {"label": "Farmers Market Events", "desc": "Set up at local markets. Let people taste the food, then download the app."},
-                    "paid_ads": {"label": "Paid Digital Ads", "desc": "Facebook and Google ads targeting local food lovers."},
-                },
-            },
-            "segment": {
-                "label": "Target Customer",
-                "description": "Who is the ideal first customer for LocalBite?",
-                "options": {
-                    "professionals": {"label": "Busy Professionals", "desc": "Time poor, money rich. Want quality meals without cooking or restaurant prices."},
-                    "students": {"label": "College Students", "desc": "Tired of dining halls. Budget conscious but high volume."},
-                    "families": {"label": "Health Conscious Families", "desc": "Want wholesome meals for their kids. Quality focused, willing to pay."},
-                    "elderly": {"label": "Elderly / Limited Mobility", "desc": "Need based market. Difficulty cooking or leaving home."},
-                },
-            },
-        },
-        "fit_matrix": {
-            "revenue": {"commission": 1.0, "cook_sub": 0.25, "eater_sub": 0.40, "delivery_fee": 0.50},
-            "pricing": {"mid": 1.0, "low": 0.55, "high": 0.45, "premium": 0.20},
-            "channel": {"nextdoor": 1.0, "social": 0.55, "farmers": 0.65, "paid_ads": 0.30},
-            "segment": {"professionals": 1.0, "families": 0.60, "elderly": 0.45, "students": 0.30},
-        },
-        "optimal": {"revenue": "commission", "pricing": "mid", "channel": "nextdoor", "segment": "professionals"},
-        "optimal_explanations": {
-            "revenue": "Commission per order aligns incentives perfectly. Cooks only pay when they earn, so there is zero barrier to listing. The platform grows as order volume grows.",
-            "pricing": "15% is the marketplace sweet spot. It covers platform costs while keeping cooks motivated. Higher rates push cooks to take orders off platform.",
-            "channel": "Neighborhood apps match the hyperlocal nature of home cooking. People want meals from cooks nearby, and community platforms build that trust.",
-            "segment": "Busy professionals have the highest order frequency and willingness to pay. They value convenience and quality over price, making them the ideal first customers.",
-        },
-        "base_metrics": {"signups": 60, "active_rate": 0.45, "revenue_per_active": 12, "retention": 0.45},
-        "market_events": {
-            2: "A popular local food blogger just featured the 'home cook economy' as the next big trend. Interest in your category is surging.",
-            3: "The city health department announced new guidelines for home food businesses. Customers are asking about food safety certifications.",
-        },
-    },
-    "gearshare": {
-        "title": "GearShare",
-        "emoji": "🏔️",
-        "one_liner": "Peer to peer outdoor gear rental for adventure seekers",
-        "hook": (
-            "Americans spend $887 billion on outdoor recreation annually, but most gear sits in garages 95% of the time. "
-            "GearShare lets people rent premium outdoor gear from neighbors: tents, kayaks, bikes, ski equipment, and more. "
-            "Your challenge: find the model that turns occasional rentals into a sustainable business."
-        ),
-        "levers": {
-            "revenue": {
-                "label": "Revenue Model",
-                "description": "How does GearShare make money?",
-                "options": {
-                    "membership": {"label": "Monthly Membership", "desc": "Members pay monthly for access. Includes insurance and a rental allowance."},
-                    "per_rental": {"label": "Per Rental Fee", "desc": "Charge a platform fee on each rental transaction. Pay as you go."},
-                    "commission": {"label": "Peer Commission", "desc": "Take a percentage of each peer to peer rental. Owners set their own prices."},
-                    "bundle": {"label": "Gear + Experience Bundles", "desc": "Bundle gear rental with guided outdoor experiences and trips."},
-                },
-            },
-            "pricing": {
-                "label": "Price Point",
-                "description": "What does GearShare cost?",
-                "options": {
-                    "low": {"label": "$10/mo or $15/rental", "desc": "Low barrier. Attracts casual users but thin margins."},
-                    "mid": {"label": "$20/mo or $30/rental", "desc": "Mid range. Good value vs. buying, sustainable margins."},
-                    "high": {"label": "$35/mo or $50/rental", "desc": "Premium positioning with full insurance and gear guarantee."},
-                    "dynamic": {"label": "Dynamic Pricing", "desc": "Prices flex based on demand, season, and gear popularity."},
-                },
-            },
-            "channel": {
-                "label": "Go to Market Channel",
-                "description": "How do outdoor enthusiasts discover GearShare?",
-                "options": {
-                    "instagram": {"label": "Instagram / Influencers", "desc": "Adventure content creators, gear reviews, aspirational outdoor content."},
-                    "retail": {"label": "Outdoor Retailer Partners", "desc": "Partner with REI, local gear shops. In store signage and referrals."},
-                    "events": {"label": "Adventure Events / Meetups", "desc": "Sponsor trail runs, paddle meetups, climbing events. Community first."},
-                    "seo": {"label": "SEO / Content Marketing", "desc": "Blog content, gear guides, trail recommendations. Long term organic growth."},
-                },
-            },
-            "segment": {
-                "label": "Target Customer",
-                "description": "Who is the ideal GearShare customer?",
-                "options": {
-                    "weekend": {"label": "Weekend Warriors", "desc": "Casual but consistent. Try new activities regularly. Do not own specialized gear."},
-                    "hardcore": {"label": "Hardcore Adventurers", "desc": "Serious outdoor athletes. Want premium gear. Already own a lot."},
-                    "families": {"label": "Outdoor Families", "desc": "Kids outgrow gear fast. Parents want to try activities before investing."},
-                    "tourists": {"label": "Travelers / Tourists", "desc": "Visiting an area, want gear for a one time trip. High willingness to pay."},
-                },
-            },
-        },
-        "fit_matrix": {
-            "revenue": {"membership": 1.0, "per_rental": 0.45, "commission": 0.55, "bundle": 0.35},
-            "pricing": {"mid": 1.0, "low": 0.50, "high": 0.40, "dynamic": 0.55},
-            "channel": {"retail": 1.0, "events": 0.60, "instagram": 0.50, "seo": 0.35},
-            "segment": {"weekend": 1.0, "families": 0.55, "tourists": 0.45, "hardcore": 0.30},
-        },
-        "optimal": {"revenue": "membership", "pricing": "mid", "channel": "retail", "segment": "weekend"},
-        "optimal_explanations": {
-            "revenue": "Membership creates predictable recurring revenue and makes each rental feel 'free,' driving more usage. Casual renters prefer a flat fee over calculating per trip costs.",
-            "pricing": "$20/month is a great deal vs. buying gear that costs hundreds. It is low enough to feel like a no brainer but high enough to build a real business.",
-            "channel": "Outdoor retailer partnerships provide built in trust and foot traffic. When REI or a local shop recommends you, credibility is instant.",
-            "segment": "Weekend warriors are the sweet spot. They try new activities often (need variety), do not own specialized gear (need rentals), and go out consistently (drive recurring revenue).",
-        },
-        "base_metrics": {"signups": 50, "active_rate": 0.40, "revenue_per_active": 18, "retention": 0.42},
-        "market_events": {
-            2: "REI just launched a limited gear rental pilot in 3 test markets. The outdoor community is debating whether big retailers can do rentals right.",
-            3: "A competitor just raised $5M and is offering free first month memberships in your top market. Your current customers are asking if you will match the offer.",
+            2: "The federal Inflation Reduction Act expanded home energy tax credits. Homeowners are searching for qualifying retrofits and calling their HVAC contractors.",
+            3: "A competitor just raised $8M Series A and is offering zero percent financing. Your prospects are asking if you will match.",
         },
     },
 }
+
 
 # =============================================================================
 # CUSTOMER QUOTE POOLS
@@ -243,94 +104,34 @@ VENTURES = {
 #                   "negative" means the current choice is not working
 # =============================================================================
 QUOTE_POOLS = {
-    "studyhive": {
+    "thermaloop": {
         "revenue": [
-            ("positive", ["freemium"], "I tried the free version for a week, fell in love with the matching, and upgraded to premium without thinking twice."),
-            ("negative", ["subscription"], "I wanted to try it before paying. Asking for my credit card upfront made me close the app immediately."),
-            ("negative", ["per_session"], "Paying each time I study feels like a toll booth. I study 4 times a week and it adds up way too fast."),
-            ("negative", ["ad_supported"], "The ads during study sessions are honestly distracting. It kind of defeats the purpose of a focus tool."),
-            ("positive", ["freemium", "subscription"], "Having a structured payment keeps me accountable. If I am paying for it, I actually use it."),
+            ("positive", ["hardware_plus_service"], "The monthly app showed me my bedroom was still leaking heat in month two. I never would have caught it without the monitoring."),
+            ("negative", ["hardware_only"], "I installed the kit and then... nothing. I have no idea if it is actually working. I want data, not just a quiet fan."),
+            ("negative", ["saas_only"], "Paying monthly forever for something bolted to my house feels wrong. I want to own it."),
+            ("positive", ["install_partner"], "My HVAC guy installed it in a couple hours, signed me up for monitoring, and now he checks in every season. Easiest upgrade I have ever done."),
+            ("negative", ["saas_only"], "If I ever stop paying, does the fan stop working? That is a really weird way to buy a home appliance."),
         ],
         "pricing": [
-            ("positive", ["mid"], "Twelve dollars a month is less than one coffee a week. For something I use daily, that is a steal."),
-            ("positive", ["low"], "At five bucks, it was a no brainer to sign up. Though honestly I would pay more if the matching got smarter."),
-            ("negative", ["high"], "Twenty five a month? I already pay for Spotify, iCloud, and my phone plan. Something has got to go, and this would be it."),
-            ("negative", ["free"], "It is free, so I downloaded it, but I do not really take it seriously. Free tools feel disposable."),
-            ("positive", ["mid", "low"], "The price feels fair for how much value I get. I use it more than Netflix."),
+            ("positive", ["mid"], "Six hundred bucks plus fifteen a month to stop my drafty rooms? That is a fraction of what a full HVAC job quoted."),
+            ("positive", ["low"], "At four hundred dollars, I did not even think about it. Best impulse purchase for my house this year."),
+            ("negative", ["high"], "Nine hundred dollars plus twenty five a month is creeping into new furnace territory. I will just wait and replace the whole system."),
+            ("negative", ["subscription_only"], "Forty nine a month forever? That is six hundred a year. I would rather pay upfront and own it."),
+            ("positive", ["mid", "low"], "The math works out. Two winters of savings and this thing has paid for itself."),
         ],
         "channel": [
-            ("positive", ["campus"], "My RA told everyone on our floor about it. Now our whole dorm uses it for exam prep."),
-            ("negative", ["social"], "I saw it on TikTok once but forgot the name. Did not download it until a friend reminded me weeks later."),
-            ("positive", ["university"], "My professor mentioned it in class. I trust it more knowing the school is behind it."),
-            ("negative", ["appstore"], "I found it by accident in the App Store. Never heard of it from anyone at school."),
-            ("positive", ["campus"], "The campus ambassador in my building set up a demo night. I signed up on the spot."),
+            ("positive", ["contractors"], "My HVAC tech mentioned ThermaLoop when he came out for a tune up. He said it was the easiest retrofit he had seen. Installed it the next week."),
+            ("negative", ["direct_online"], "I saw an Instagram ad and almost bought, but I have no idea how to install it. Would I mess up my ducts? Too risky without a pro."),
+            ("positive", ["utility"], "My utility sent a flyer about energy rebates and ThermaLoop was on the list. Knowing my power company vetted it gave me real confidence."),
+            ("negative", ["big_box"], "I saw the box at Home Depot but the associate had never heard of it. I put it back and bought a smart thermostat instead."),
+            ("positive", ["contractors"], "The certified installer gave me a quote on the spot and did it the same visit. That is the only reason I actually pulled the trigger."),
         ],
         "segment": [
-            ("positive", ["stem"], "As a CS major, finding people who actually understand recursion to study with is worth its weight in gold."),
-            ("negative", ["all_students"], "My study group had a film major, an engineer, and an art student. We had absolutely nothing in common."),
-            ("positive", ["premed"], "Pre med study groups are intense. This tool makes finding serious, committed partners so much easier."),
-            ("negative", ["graduate"], "I am in a grad program with 20 people. I already know everyone. Not sure I need an app for that."),
-            ("positive", ["stem", "premed"], "The material is so hard that studying alone is not an option. This tool is becoming essential."),
-        ],
-    },
-    "localbite": {
-        "revenue": [
-            ("positive", ["commission"], "I love that I only pay the platform when I actually sell a meal. Zero risk to get started as a cook."),
-            ("negative", ["cook_sub"], "Paying monthly just to list my meals feels backwards. What if nobody orders? I am out that money."),
-            ("negative", ["eater_sub"], "A monthly membership to order food? I do not order often enough to justify that. Let me just pay per meal."),
-            ("positive", ["delivery_fee"], "The delivery fee is transparent. I know exactly what I am paying and the cook gets their full price."),
-            ("negative", ["cook_sub"], "I know three great cooks who would join, but they will not pay upfront. They need to see orders first."),
-        ],
-        "pricing": [
-            ("positive", ["mid"], "Fifteen percent feels fair. The cook gets most of the money and the platform clearly adds value."),
-            ("negative", ["premium"], "Twenty five percent?! At that rate, I would rather just post on Instagram and take orders directly."),
-            ("positive", ["low"], "The low platform fee is why I started cooking here instead of other delivery apps. I actually keep my earnings."),
-            ("negative", ["high"], "Some cooks are raising prices to cover the platform fee, which makes the food less competitive with restaurants."),
-            ("positive", ["mid", "low"], "Compared to DoorDash taking 30%, this feels like a great deal for cooks."),
-        ],
-        "channel": [
-            ("positive", ["nextdoor"], "I found my favorite cook through a Nextdoor post. It feels so much more trustworthy than a random app."),
-            ("negative", ["paid_ads"], "I saw a Facebook ad but was not sure if the food was safe. I would need a personal recommendation."),
-            ("positive", ["farmers"], "I tried a cook's food at the farmers market and immediately downloaded the app to order again."),
-            ("negative", ["social"], "The Instagram photos looked great, but I want to know the cook is in my neighborhood, not across town."),
-            ("positive", ["nextdoor"], "My neighbor recommended a cook on LocalBite. That personal connection made me trust it instantly."),
-        ],
-        "segment": [
-            ("positive", ["professionals"], "After a 10 hour workday, having a home cooked meal waiting is literally life changing. Worth every penny."),
-            ("negative", ["students"], "The meals are great quality, but $15 for lunch is steep on a student budget. I am back to ramen."),
-            ("positive", ["families"], "My kids actually eat the food from LocalBite cooks. It is healthier and cheaper than ordering takeout."),
-            ("positive", ["elderly"], "I cannot stand for long in the kitchen anymore. Having a neighbor cook for me has been a blessing."),
-            ("negative", ["students"], "I would order more often but honestly I cannot afford it every day. Maybe once a week as a treat."),
-        ],
-    },
-    "gearshare": {
-        "revenue": [
-            ("positive", ["membership"], "The monthly membership makes each rental feel free. I end up trying way more activities than I would otherwise."),
-            ("negative", ["per_rental"], "Calculating the cost each time I want to rent something is annoying. I just want to grab gear and go."),
-            ("positive", ["commission"], "I like setting my own rental price for my kayak. The platform just takes a small cut and handles everything else."),
-            ("negative", ["bundle"], "I just want to rent a tent, not book a whole guided experience. The bundles feel like an upsell I did not ask for."),
-            ("positive", ["membership"], "Knowing I can grab any gear whenever I want for a flat monthly fee makes me say yes to every weekend adventure."),
-        ],
-        "pricing": [
-            ("positive", ["mid"], "Twenty bucks a month to access thousands of dollars of gear? That is the best deal in outdoor recreation."),
-            ("negative", ["high"], "Thirty five a month is getting into gym membership territory. I would need to rent almost every weekend to justify that."),
-            ("positive", ["low"], "At ten dollars a month, I signed up even though I was not sure I would use it. Now I rent something every other week."),
-            ("negative", ["dynamic"], "The price changed three times while I was deciding. I just want to know what it costs without playing a guessing game."),
-            ("positive", ["mid", "low"], "The pricing feels really fair compared to what this gear would cost to buy. My garage thanks me."),
-        ],
-        "channel": [
-            ("positive", ["retail"], "The REI associate mentioned GearShare when I was looking at $400 tents. Signed up right there in the store."),
-            ("negative", ["seo"], "I found a blog post about gear rentals but there were so many options that I got overwhelmed and gave up."),
-            ("positive", ["events"], "I met the GearShare team at a trail run event. Tried a demo and signed up before I got home."),
-            ("negative", ["instagram"], "I follow outdoor influencers but their sponsored posts all blur together. Hard to know what is legit."),
-            ("positive", ["retail"], "My local gear shop has a GearShare display. Seeing the actual gear I could rent made it real for me."),
-        ],
-        "segment": [
-            ("positive", ["weekend"], "I try a different activity almost every weekend. Buying all that gear would be insane. Renting is perfect."),
-            ("negative", ["hardcore"], "I already own all my climbing gear and have strong brand preferences. I do not really need to rent anything."),
-            ("positive", ["families"], "My kids want to try everything: kayaking, camping, skiing. With GearShare I can say yes without spending a fortune."),
-            ("negative", ["tourists"], "I rented gear once on vacation and it was great, but I am not going to keep a membership for a once a year trip."),
-            ("positive", ["weekend"], "I always wanted to try paddleboarding but did not want to buy a board first. GearShare let me test it risk free."),
+            ("positive", ["older_homes"], "My house is from 1978. I have three rooms that are basically unusable in January. ThermaLoop fixed two of them in one day."),
+            ("negative", ["diy_homeowners"], "I am handy and wanted to install it myself, but the install guide assumes a contractor is doing it. I returned it."),
+            ("positive", ["landlords"], "I own four small rental houses, all built before 2000. Tenant complaints about drafts have dropped to zero. Huge retention win."),
+            ("negative", ["commercial"], "We looked at it for our office but the sales cycle was six months and we needed a full commercial air handler anyway. Wrong fit for us."),
+            ("positive", ["older_homes"], "Our 1960s house was leaking heat like a sieve. First winter with ThermaLoop, our gas bill dropped by a third."),
         ],
     },
 }
@@ -342,7 +143,7 @@ QUOTE_POOLS = {
 def init_state():
     defaults = {
         "stage": "intro",
-        "venture_key": None,
+        "venture_key": "thermaloop",
         "current_round": 1,
         "configs": {1: None, 2: None, 3: None},
         "results_cache": {1: None, 2: None, 3: None},
@@ -763,13 +564,14 @@ def screen_intro():
                 and whether you stayed focused or changed too many things at once.
             </p>
             <p style="color:#6d28d9;margin:0.75rem 0 0 0;font-size:0.88rem;">
-                23 Takes about 8 to 10 minutes to complete.
+                Takes about 8 to 10 minutes to complete.
             </p>
         </div>
         """, unsafe_allow_html=True)
 
-        if st.button("Choose Your Venture  →", use_container_width=True, type="primary"):
-            go("choose")
+        if st.button("Start Round 1  →", use_container_width=True, type="primary"):
+            st.session_state.venture_key = "thermaloop"
+            go("config")
             st.rerun()
 
         render_footer()
@@ -1305,29 +1107,16 @@ def screen_debrief():
             <div style="color:#475569;line-height:1.7;font-size:0.95rem;">{insight}</div>
         </div>
         """, unsafe_allow_html=True)
-        col_play1, col_play2 = st.columns(2)
-        with col_play1:
-            if st.button("🔄  Try a Different Venture", use_container_width=True):
-                email_backup = st.session_state.get("email")
-                for key in list(st.session_state.keys()):
-                    del st.session_state[key]
-                init_state()
-                if email_backup:
-                    st.session_state.email = email_backup
-                go("choose")
-                st.rerun()
-        with col_play2:
-            if st.button("🔁  Replay This Venture", use_container_width=True):
-                vk_backup = st.session_state.venture_key
-                email_backup = st.session_state.get("email")
-                for key in list(st.session_state.keys()):
-                    del st.session_state[key]
-                init_state()
-                st.session_state.venture_key = vk_backup
-                if email_backup:
-                    st.session_state.email = email_backup
-                go("config")
-                st.rerun()
+        if st.button("🔁  Replay Simulation", use_container_width=True):
+            email_backup = st.session_state.get("email")
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            init_state()
+            st.session_state.venture_key = "thermaloop"
+            if email_backup:
+                st.session_state.email = email_backup
+            go("config")
+            st.rerun()
 
         render_footer()
 
@@ -1340,7 +1129,10 @@ stage = st.session_state.stage
 if stage == "intro":
     screen_intro()
 elif stage == "choose":
-    screen_choose()
+    # Venture selection removed — ThermaLoop is locked in. Redirect to config.
+    st.session_state.venture_key = "thermaloop"
+    st.session_state.stage = "config"
+    screen_config()
 elif stage == "config":
     screen_config()
 elif stage == "results":
