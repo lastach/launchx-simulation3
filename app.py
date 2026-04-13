@@ -98,6 +98,99 @@ VENTURES = {
 
 
 # =============================================================================
+# UNIT ECONOMICS PARAMETERS
+# Each lever choice maps to dollar/percent values that feed a real unit-
+# economics calculation. Learners see computed CAC, margin, LTV, payback,
+# and LTV:CAC live as they toggle their business-model choices.
+# =============================================================================
+UNIT_ECON_PARAMS = {
+    "thermaloop": {
+        "pricing": {
+            "low":               {"upfront": 399, "monthly":  9, "gross_margin_base": 0.42},
+            "mid":               {"upfront": 599, "monthly": 15, "gross_margin_base": 0.55},
+            "high":              {"upfront": 899, "monthly": 25, "gross_margin_base": 0.60},
+            "subscription_only": {"upfront":   0, "monthly": 49, "gross_margin_base": 0.45},
+        },
+        "revenue": {
+            # margin_adj applied to pricing GM; churn_monthly is the baseline.
+            "hardware_only":          {"margin_adj":  0.05, "churn_monthly": 0.040},
+            "hardware_plus_service":  {"margin_adj":  0.00, "churn_monthly": 0.020},
+            "saas_only":              {"margin_adj": -0.08, "churn_monthly": 0.050},
+            "install_partner":        {"margin_adj": -0.15, "churn_monthly": 0.015},
+        },
+        "channel": {
+            "contractors":    {"cac":  80},
+            "utility":        {"cac":  50},
+            "direct_online":  {"cac": 180},
+            "big_box":        {"cac": 120},
+        },
+        "segment": {
+            "older_homes":     {"churn_adj":  0.000, "volume_index": 1.00},
+            "landlords":       {"churn_adj": -0.005, "volume_index": 0.70},
+            "diy_homeowners":  {"churn_adj":  0.030, "volume_index": 0.50},
+            "commercial":      {"churn_adj": -0.010, "volume_index": 0.30},
+        },
+    },
+}
+
+
+def compute_unit_economics(config: dict, venture_key: str) -> dict:
+    """Translate a lever config into concrete unit economics: CAC, margin,
+    churn, LTV, payback, LTV:CAC. Deterministic — purely from the parameter
+    table above. This is what makes the business-model simulation 'real':
+    the learner sees dollar math, not a rubric score.
+    """
+    p = UNIT_ECON_PARAMS.get(venture_key)
+    if not p:
+        return {}
+    pr = p["pricing"][config["pricing"]]
+    rv = p["revenue"][config["revenue"]]
+    ch = p["channel"][config["channel"]]
+    seg = p["segment"][config["segment"]]
+
+    upfront = pr["upfront"]
+    monthly = pr["monthly"]
+    gm = max(0.05, min(0.90, pr["gross_margin_base"] + rv["margin_adj"]))
+    monthly_churn = max(0.005, min(0.30, rv["churn_monthly"] + seg["churn_adj"]))
+    cac = ch["cac"]
+
+    # Contribution dollars
+    upfront_cm = upfront * gm
+    monthly_cm = monthly * gm
+    retention_months = 1 / monthly_churn if monthly_churn > 0 else 60
+
+    # LTV = upfront CM + monthly CM × expected lifetime
+    ltv = upfront_cm + monthly_cm * retention_months
+
+    # Payback: first recover CAC from upfront CM, rest from monthly CM
+    if monthly_cm > 0:
+        if upfront_cm >= cac:
+            payback_months = 0.0  # CAC recovered on first transaction
+        else:
+            payback_months = (cac - upfront_cm) / monthly_cm
+    else:
+        # No recurring revenue: payback depends on whether upfront CM exceeds CAC
+        payback_months = 0.0 if upfront_cm >= cac else 999
+
+    ltv_cac = ltv / cac if cac > 0 else 0
+
+    return {
+        "upfront_price":     upfront,
+        "monthly_price":     monthly,
+        "gross_margin":      gm,
+        "monthly_churn":     monthly_churn,
+        "retention_months":  retention_months,
+        "cac":               cac,
+        "upfront_cm":        upfront_cm,
+        "monthly_cm":        monthly_cm,
+        "ltv":               ltv,
+        "ltv_cac":           ltv_cac,
+        "payback_months":    payback_months,
+        "volume_index":      seg["volume_index"],
+    }
+
+
+# =============================================================================
 # CUSTOMER QUOTE POOLS
 # Each quote: (lever, signal_direction, optimal_values, text)
 # signal_direction: "positive" means the current choice is working
@@ -287,8 +380,32 @@ def compute_final_scores(venture_key):
         else:
             fits.append(0)
 
-    # 1. Final Model Fit (34 pts)
-    final_fit_pts = fits[2] * 34
+    # 1. Final Model Fit + Unit Economics (34 pts combined)
+    # Half the weight on fit, half on whether the final config produces healthy unit econ.
+    final_fit_pts = fits[2] * 17
+    final_config = configs[3] or configs[2] or configs[1]
+    if final_config:
+        final_ue = compute_unit_economics(final_config, venture_key)
+    else:
+        final_ue = {}
+    ue_score = 0.0
+    if final_ue:
+        # LTV:CAC component (0-1)
+        lc = final_ue.get("ltv_cac", 0)
+        if lc >= 3: lc_norm = 1.0
+        elif lc >= 2: lc_norm = 0.75
+        elif lc >= 1: lc_norm = 0.4
+        else: lc_norm = 0.1 if lc > 0 else 0.0
+        # Payback component (0-1)
+        pb = final_ue.get("payback_months", 999)
+        if pb == 0: pb_norm = 1.0
+        elif pb < 12: pb_norm = 0.85
+        elif pb < 24: pb_norm = 0.5
+        elif pb < 999: pb_norm = 0.25
+        else: pb_norm = 0.0
+        ue_score = (lc_norm + pb_norm) / 2
+    unit_econ_pts = ue_score * 17
+    final_fit_pts = final_fit_pts + unit_econ_pts  # combined out of 34
 
     # 2. Iteration Quality (30 pts)
     good_changes = 0
@@ -739,6 +856,62 @@ def screen_config():
                     unsafe_allow_html=True,
                 )
 
+        # ---- Live Unit Economics ----
+        ue = compute_unit_economics(config, vk)
+        if ue:
+            ltv_cac_color = "#16a34a" if ue["ltv_cac"] >= 3 else "#d97706" if ue["ltv_cac"] >= 1 else "#dc2626"
+            pb_color = ("#16a34a" if 0 <= ue["payback_months"] < 12
+                        else "#d97706" if ue["payback_months"] < 24
+                        else "#dc2626")
+            churn_pct = ue["monthly_churn"] * 100
+            st.markdown(f"""
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:1.25rem;margin:1rem 0;">
+                <div style="font-weight:700;color:#1e1b4b;margin-bottom:0.5rem;">📐 Unit Economics at This Configuration</div>
+                <div style="color:#64748b;font-size:0.85rem;margin-bottom:0.75rem;">
+                    Computed from your pricing, revenue model, channel, and segment choices. Updates live.
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;">
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">Upfront Price</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#1f2937;">${ue['upfront_price']:,.0f}</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">Monthly Price</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#1f2937;">${ue['monthly_price']:,.0f}</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">Gross Margin</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#1f2937;">{ue['gross_margin']*100:.0f}%</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">CAC</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#1f2937;">${ue['cac']:,.0f}</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">Monthly Churn</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#1f2937;">{churn_pct:.1f}%</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">LTV</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:#1f2937;">${ue['ltv']:,.0f}</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">LTV : CAC</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:{ltv_cac_color};">{ue['ltv_cac']:.1f} : 1</div>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.75rem;">
+                        <div style="font-size:0.72rem;color:#6b7280;text-transform:uppercase;">Payback</div>
+                        <div style="font-size:1.1rem;font-weight:700;color:{pb_color};">
+                            {("Immediate" if ue['payback_months'] == 0 else f"{ue['payback_months']:.1f} mo" if ue['payback_months'] < 999 else "Never")}
+                        </div>
+                    </div>
+                </div>
+                <div style="margin-top:0.75rem;font-size:0.83rem;color:#475569;">
+                    <strong>Formulas:</strong> LTV = upfront contribution + monthly contribution × (1/churn). Payback = (CAC − upfront contribution) / monthly contribution. Healthy SaaS has LTV:CAC ≥ 3 and payback &lt; 12 months.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
         st.markdown("<div style='height:1px;background:#e5e7eb;margin:1rem 0;'></div>", unsafe_allow_html=True)
 
         if st.button(f"🚀  Launch Round {rnd}", use_container_width=True, type="primary"):
@@ -915,6 +1088,67 @@ def screen_debrief():
             </div>
             """, unsafe_allow_html=True)
 
+        # Final Unit Economics panel — what your Round 3 model produces
+        final_cfg = st.session_state.configs.get(3) or st.session_state.configs.get(2) or st.session_state.configs.get(1)
+        if final_cfg:
+            fue = compute_unit_economics(final_cfg, vk)
+            if fue:
+                lc = fue.get("ltv_cac", 0)
+                pb = fue.get("payback_months", 999)
+                lc_color = "#16a34a" if lc >= 3 else "#d97706" if lc >= 1 else "#dc2626"
+                pb_color = "#16a34a" if 0 <= pb < 12 else "#d97706" if pb < 24 else "#dc2626"
+                if lc >= 3 and (pb < 12):
+                    ue_verdict = "🟢 <strong>Healthy unit economics.</strong> LTV:CAC ≥ 3 and payback under a year — this is the zone where customer acquisition creates value."
+                elif lc >= 1.5:
+                    ue_verdict = "🟡 <strong>Fragile unit economics.</strong> You are making marginal money per customer, but the buffer is thin. Small shocks (higher CAC, churn spike) flip it negative."
+                elif lc > 0:
+                    ue_verdict = "🔴 <strong>Negative unit economics.</strong> Each customer costs more than they return. Fix CAC (channel/segment) or price/margin/churn before scaling."
+                else:
+                    ue_verdict = "⚫ Unit economics could not be computed."
+                churn_pct = fue["monthly_churn"] * 100
+                st.markdown(f"""
+                <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
+                    <div style="font-weight:700;color:#1e1b4b;margin-bottom:0.5rem;">📐 Your Final Unit Economics</div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.6rem;margin-bottom:0.75rem;">
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">CAC</div>
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;">${fue['cac']:,.0f}</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">GM</div>
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;">{fue['gross_margin']*100:.0f}%</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Churn/mo</div>
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;">{churn_pct:.1f}%</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">LTV</div>
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;">${fue['ltv']:,.0f}</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">LTV : CAC</div>
+                            <div style="font-size:1rem;font-weight:700;color:{lc_color};">{lc:.1f} : 1</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Payback</div>
+                            <div style="font-size:1rem;font-weight:700;color:{pb_color};">
+                                {"Immediate" if pb == 0 else f"{pb:.1f}mo" if pb < 999 else "Never"}
+                            </div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Upfront $</div>
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;">${fue['upfront_price']:,.0f}</div>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:0.6rem;">
+                            <div style="font-size:0.7rem;color:#6b7280;text-transform:uppercase;">Monthly $</div>
+                            <div style="font-size:1rem;font-weight:700;color:#1f2937;">${fue['monthly_price']:,.0f}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.9rem;color:#475569;">{ue_verdict}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
         # Fit progression chart (single HTML block)
         fits = scores["fits"]
         progression_rows = ""
@@ -940,8 +1174,8 @@ def screen_debrief():
 
         # Score breakdown (single HTML block)
         breakdown = [
-            ("Final Model Fit", scores["final_fit"], 34,
-             "How close your Round 3 model was to the optimal configuration."),
+            ("Final Model Fit + Unit Economics", scores["final_fit"], 34,
+             "Half: how close your Round 3 model is to optimal fit. Half: whether it produces healthy LTV:CAC and payback."),
             ("Iteration Quality", scores["iteration"], 30,
              f"You made {scores['total_changes']} changes: {scores['good_changes']} improved fit, {scores['bad_changes']} did not."),
             ("Founder Focus", scores["focus"], 21,
