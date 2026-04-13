@@ -1281,6 +1281,58 @@ def screen_debrief():
             <div style="color:#475569;line-height:1.7;font-size:0.95rem;">{insight}</div>
         </div>
         """, unsafe_allow_html=True)
+
+        # --- Named theoretical frameworks (HBS-rigor grounding) ---
+        st.markdown("""
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
+            <div style="font-weight:600;color:#9a3412;margin-bottom:0.75rem;">📚 Theoretical grounding for what you just did</div>
+            <ul style="color:#7c2d12;line-height:1.7;font-size:0.93rem;margin:0;padding-left:1.2rem;">
+                <li><strong>Business Model Canvas (Osterwalder &amp; Pigneur, 2010):</strong> You iterated on four of the nine canvas blocks — revenue streams, pricing, channels, and customer segments. In real practice, a change in one block forces consistency checks across all nine.</li>
+                <li><strong>Lean Startup (Ries, 2011):</strong> Each round was a <em>pivot-or-persevere</em> decision. The customer signals between rounds were your <em>validated learning</em>.</li>
+                <li><strong>Product/Market Fit (Andreessen, 2007):</strong> "Fit" here is operationalized as the distance between your 4-lever configuration and the market's optimal. Andreessen's original definition — &quot;when the market is pulling the product out of the startup&quot; — corresponds to sustained Round-3 fit ≥ 70% with healthy unit economics.</li>
+                <li><strong>SaaS unit-economics (Skok, 2012):</strong> The LTV:CAC ≥ 3 and payback &lt; 12 months thresholds your debrief used are the Bessemer/Skok benchmarks that gate Series A readiness.</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # --- Worst-case unit-econ teaching moment ---
+        # If final unit economics came out negative or fragile, add a specific teaching block
+        try:
+            final_cfg_tm = st.session_state.configs[3] or st.session_state.configs[2] or st.session_state.configs[1]
+            if final_cfg_tm:
+                vk_tm = st.session_state.venture_key
+                ue_tm = compute_unit_economics(final_cfg_tm, vk_tm)
+                teach = None
+                if ue_tm and ue_tm.get("ltv_cac") is not None:
+                    ltv_cac = ue_tm["ltv_cac"]
+                    payback = ue_tm.get("payback", 999)
+                    if ltv_cac < 1.0:
+                        teach = (
+                            "<strong>Negative unit economics — this is the most common cause of startup death.</strong> "
+                            "Your LTV:CAC is below 1.0, meaning every customer you acquire destroys value. "
+                            "The fix is never 'grow faster'; growth multiplies losses. The fix is one of three levers: "
+                            "(a) lower CAC via a different <em>channel or segment</em>, (b) raise LTV via <em>price, retention, or expansion</em>, or "
+                            "(c) improve gross margin. Test these levers one at a time — a classic trap is changing "
+                            "everything and losing the attribution. (See Blank, <em>Four Steps to the Epiphany</em>, Ch. 4.)"
+                        )
+                    elif ltv_cac < 3.0 or payback >= 18:
+                        teach = (
+                            "<strong>Fragile unit economics — survivable but not fundable.</strong> "
+                            "Your LTV:CAC is between 1 and 3, or payback exceeds 18 months. You can operate here, "
+                            "but you cannot raise a priced Series A here. Skok's benchmark (LTV:CAC ≥ 3, payback &lt; 12 mo) "
+                            "is the default diligence screen for institutional investors. If this were a real venture, "
+                            "the next two quarters should be entirely focused on a single CAC-efficiency experiment."
+                        )
+                if teach:
+                    st.markdown(f"""
+                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;">
+                        <div style="font-weight:700;color:#991b1b;margin-bottom:0.75rem;">⚠️ Teaching moment: your unit economics</div>
+                        <div style="color:#7f1d1d;line-height:1.7;font-size:0.93rem;">{teach}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        except Exception:
+            pass
+
         if st.button("🔁  Replay Simulation", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
