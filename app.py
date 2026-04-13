@@ -269,19 +269,63 @@ def compute_fit(config, venture_key):
 
 
 def generate_metrics(fit, venture_key, round_num):
-    """Generate realistic market metrics based on fit score and round."""
+    """Generate realistic market metrics based on fit score and round.
+
+    Rigor note: when a founder changes multiple model levers between rounds
+    (revenue model, pricing, channel, segment), they pay a pivot cost:
+    existing users churn because the product they signed up for has
+    changed underneath them, channels must be rebuilt, and segment
+    messaging resets. We model this explicitly:
+
+      - 0-1 levers changed: no penalty (incremental tuning)
+      - 2 levers changed: 15% metric drag + accelerated retention drop
+      - 3 levers changed: 30% metric drag (large pivot)
+      - 4 levers changed: 50% metric drag (full business-model reboot)
+
+    The penalty decays on round 3 — if you stabilize after an early pivot,
+    you recover partially.
+    """
     v = VENTURES[venture_key]
     base = v["base_metrics"]
     # Scale up each round (market awareness grows)
     round_multiplier = {1: 1.0, 2: 2.5, 3: 5.0}[round_num]
     noise = random.uniform(0.9, 1.1)
 
-    signups = int(base["signups"] * (0.3 + 0.7 * fit) * round_multiplier * noise)
-    active_rate = min(0.95, base["active_rate"] * (0.4 + 0.6 * fit) * random.uniform(0.92, 1.08))
+    # --- Pivot-cost calculation -------------------------------------------
+    pivot_penalty = 1.0
+    pivot_churn = 0.0
+    levers_changed_this_round = 0
+    if round_num > 1:
+        prior = st.session_state.configs.get(round_num - 1)
+        current = st.session_state.configs.get(round_num)
+        if prior and current:
+            for lever in ("revenue", "pricing", "channel", "segment"):
+                if prior.get(lever) != current.get(lever):
+                    levers_changed_this_round += 1
+            penalty_table = {0: 1.00, 1: 1.00, 2: 0.85, 3: 0.70, 4: 0.50}
+            pivot_penalty = penalty_table.get(levers_changed_this_round, 1.0)
+            # Round 3 gets partial recovery if the pivot was in round 2
+            if round_num == 3:
+                prev_changes = 0
+                r1 = st.session_state.configs.get(1)
+                r2 = st.session_state.configs.get(2)
+                if r1 and r2:
+                    for lever in ("revenue", "pricing", "channel", "segment"):
+                        if r1.get(lever) != r2.get(lever):
+                            prev_changes += 1
+                if prev_changes >= 2 and levers_changed_this_round <= 1:
+                    pivot_penalty = min(1.0, pivot_penalty + 0.10)  # stabilization bonus
+            # Retention hits harder than signups on a pivot (existing users churn)
+            pivot_churn = {0: 0.0, 1: 0.0, 2: 0.10, 3: 0.20, 4: 0.35}.get(
+                levers_changed_this_round, 0.0)
+
+    signups = int(base["signups"] * (0.3 + 0.7 * fit) * round_multiplier * noise * pivot_penalty)
+    active_rate = min(0.95, base["active_rate"] * (0.4 + 0.6 * fit) * random.uniform(0.92, 1.08) * pivot_penalty)
     active_users = int(signups * active_rate)
     revenue_per = base["revenue_per_active"] * (0.5 + 0.5 * fit) * random.uniform(0.9, 1.1)
     revenue = int(active_users * revenue_per)
-    retention = min(0.95, base["retention"] * (0.3 + 0.7 * fit) * random.uniform(0.92, 1.08))
+    retention_raw = base["retention"] * (0.3 + 0.7 * fit) * random.uniform(0.92, 1.08)
+    retention = min(0.95, max(0.05, retention_raw - pivot_churn))
 
     return {
         "signups": signups,
@@ -289,6 +333,9 @@ def generate_metrics(fit, venture_key, round_num):
         "revenue": revenue,
         "retention": round(retention * 100),
         "active_rate": round(active_rate * 100),
+        "pivot_levers_changed": levers_changed_this_round,
+        "pivot_penalty": pivot_penalty,
+        "pivot_churn_added": pivot_churn,
     }
 
 
@@ -985,6 +1032,28 @@ def screen_results():
         m2.metric("Active Users", f"{metrics['active_users']:,}")
         m3.metric("Revenue", f"${metrics['revenue']:,}")
         m4.metric("Retention", f"{metrics['retention']}%")
+
+        # --- Pivot cost callout --------------------------------------------
+        levers_changed = metrics.get("pivot_levers_changed", 0)
+        pivot_penalty = metrics.get("pivot_penalty", 1.0)
+        pivot_churn = metrics.get("pivot_churn_added", 0.0)
+        if levers_changed >= 2:
+            drag_pct = int((1.0 - pivot_penalty) * 100)
+            churn_pct = int(pivot_churn * 100)
+            pivot_label = {2: "Meaningful pivot", 3: "Major pivot",
+                           4: "Full business-model reboot"}.get(levers_changed, "Pivot")
+            st.warning(
+                f"🔄 **{pivot_label}** ({levers_changed} of 4 levers changed this round). "
+                f"Acquisition and activation took a −{drag_pct}% hit, and retention took an "
+                f"additional −{churn_pct}pp because existing users churned when the model "
+                f"shifted under them. Pivots compound: stabilizing next round partially "
+                f"recovers the drag, but each lever changed is a real-world cost."
+            )
+        elif levers_changed == 1:
+            st.info(
+                f"🔧 **Incremental change** (1 of 4 levers changed). No pivot penalty — "
+                f"small iterative tuning is how real operators improve model fit."
+            )
 
         # Customer quotes
         st.markdown("""<div style="font-weight:600;color:#1e1b4b;margin-bottom:0.75rem;margin-top:1.5rem;">💬 What Customers Are Saying</div>""", unsafe_allow_html=True)
