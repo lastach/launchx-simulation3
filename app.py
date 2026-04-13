@@ -148,8 +148,6 @@ def init_state():
         "configs": {1: None, 2: None, 3: None},
         "results_cache": {1: None, 2: None, 3: None},
         "fit_history": [],
-        "email": None,
-        "email_skipped": False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -868,64 +866,6 @@ def screen_results():
                 st.rerun()
         else:
             if st.button("See Your Final Score  →", use_container_width=True, type="primary"):
-                go("email")
-                st.rerun()
-
-        render_footer()
-
-
-# =============================================================================
-# SCREEN: EMAIL CAPTURE
-# =============================================================================
-def screen_email():
-    vk = st.session_state.venture_key
-    v = VENTURES[vk]
-    # Compute a teaser score
-    scores = compute_final_scores(vk)
-    grade, grade_label = get_grade(scores["total"])
-    score_color = "#16a34a" if scores["total"] >= 70 else "#d97706" if scores["total"] >= 50 else "#dc2626"
-
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown(f"""
-        <div style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 100%);
-                    padding:2.5rem;border-radius:16px;color:#fff;text-align:center;margin-bottom:2rem;">
-            <div style="font-size:0.9rem;opacity:0.8;margin-bottom:0.5rem;">SIMULATION COMPLETE</div>
-            <div style="font-size:4rem;font-weight:800;color:{score_color};line-height:1;">{scores['total']}</div>
-            <div style="font-size:1rem;margin-top:0.5rem;opacity:0.9;">
-                Grade: {grade} ({grade_label})
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown("""
-        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:2rem;text-align:center;margin-bottom:1.5rem;">
-            <h3 style="color:#1e1b4b;margin-top:0;">Unlock Your Full Results</h3>
-            <p style="color:#475569;line-height:1.7;">
-                See your detailed score breakdown, discover the optimal business model,
-                get personalized coaching insights, and earn achievement badges.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        email = st.text_input(
-            "Enter your email to see your full results",
-            placeholder="you@example.com",
-            key="email_input",
-        )
-
-        col_a, col_b = st.columns(2)
-        with col_a:
-            if st.button("See My Results  →", use_container_width=True, type="primary"):
-                if email and "@" in email and "." in email:
-                    st.session_state.email = email
-                    go("debrief")
-                    st.rerun()
-                else:
-                    st.warning("Please enter a valid email address.")
-        with col_b:
-            if st.button("Skip for now", use_container_width=True):
-                st.session_state.email_skipped = True
                 go("debrief")
                 st.rerun()
 
@@ -1108,13 +1048,10 @@ def screen_debrief():
         </div>
         """, unsafe_allow_html=True)
         if st.button("🔁  Replay Simulation", use_container_width=True):
-            email_backup = st.session_state.get("email")
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             init_state()
             st.session_state.venture_key = "thermaloop"
-            if email_backup:
-                st.session_state.email = email_backup
             go("config")
             st.rerun()
 
@@ -1138,7 +1075,9 @@ elif stage == "config":
 elif stage == "results":
     screen_results()
 elif stage == "email":
-    screen_email()
+    # Email capture removed — route directly to debrief.
+    st.session_state.stage = "debrief"
+    screen_debrief()
 elif stage == "debrief":
     screen_debrief()
 else:
